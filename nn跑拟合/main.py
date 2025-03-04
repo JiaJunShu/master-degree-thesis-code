@@ -18,9 +18,9 @@ def main():
 
         temp = 0
         # 清空文件
-        open('zhengdingk3_error_k3.txt', 'w').close()
+        open('zhengdingk5_error_k3.txt', 'w').close()
         for z in sequence:
-            with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk3_error_k3.txt', 'a', encoding='utf-8') as outfile:
+            with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk5_error_k3.txt', 'a', encoding='utf-8') as outfile:
                 outfile.write(f"{z}\n")
             for x, y in zip(x_values, y_values):
                 missile1 = Missile(v_xk=220, phi=0, theta=45 * np.pi / 180, psi=x * np.pi / 180, position_x=0,
@@ -70,7 +70,7 @@ def main():
                     missile1.runge_kutta_update()
                     missile1.display_info()
                     missile1.save_to_file()
-                with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk3_error_k3.txt', 'a',
+                with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk5_error_k3.txt', 'a',
                                                                                encoding='utf-8') as outfile:
                     # 读取所有行
                     lines = infile.readlines()

@@ -11,8 +11,12 @@ import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('Using device:', device)
 
+
+os.chdir('D:/硕士大论文/我的工作/py写弹道仿真代码 -最终/nn跑拟合')
+
 # 加载数据
-file_path = 'C:/Users/Administrator/Desktop/py写弹道 - 副本/nn跑拟合/combined_output.csv'
+
+file_path = 'D:/硕士大论文/我的工作/py写弹道仿真代码 -最终/nn跑拟合/combined_output.csv'
 data = pd.read_csv(file_path, header=1, encoding='gbk')
 
 # 获取特征X
@@ -65,7 +69,7 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.005)
 
 # 训练模型
-num_epochs = 20
+num_epochs = 2
 batch_size = 32
 
 for epoch in range(num_epochs):
