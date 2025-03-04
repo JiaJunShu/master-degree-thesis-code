@@ -18,9 +18,9 @@ def main():
 
         temp = 0
         # 清空文件
-        open('zhengdingk5_error_k3.txt', 'w').close()
+        open('zhengdingk5_error_k5.txt', 'w').close()
         for z in sequence:
-            with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk5_error_k3.txt', 'a', encoding='utf-8') as outfile:
+            with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk5_error_k5.txt', 'a', encoding='utf-8') as outfile:
                 outfile.write(f"{z}\n")
             for x, y in zip(x_values, y_values):
                 missile1 = Missile(v_xk=220, phi=0, theta=45 * np.pi / 180, psi=x * np.pi / 180, position_x=0,
