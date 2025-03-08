@@ -6,29 +6,12 @@ import random
 
 
 def main():
-        # 实例化Missle类，初始化参数 #速度别超过150 220
-        x_pre = 1000
-        y_pre = 1000
 
-        # 生成两个随机序列
-        x_values = [random.uniform(-0.5, 0.5) for _ in range(30)]
-        y_values = [random.uniform(-180, 180) for _ in range(30)]
-        # 生成一个包含 36 个从 0 到 1 的顺序序列
-        sequence = np.arange(0.05, 1, 0.05)
-
-        temp = 0
-        # 清空文件
-        open('zhengdingk5_error_k5.txt', 'w').close()
-        for z in sequence:
-            with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk5_error_k5.txt', 'a', encoding='utf-8') as outfile:
-                outfile.write(f"{z}\n")
-            for x, y in zip(x_values, y_values):
-                missile1 = Missile(v_xk=220, phi=0, theta=45 * np.pi / 180, psi=x * np.pi / 180, position_x=0,
+                missile1 = Missile(v_xk=220, phi=0, theta=45 * np.pi / 180, psi=0 * np.pi / 180, position_x=0,
                                    position_y=0,
-                                   position_z=0, theta_a=45 * np.pi / 180, psi_v=x * np.pi / 180, omega_xb=0,
+                                   position_z=0, theta_a=45 * np.pi / 180, psi_v=0 * np.pi / 180, omega_xb=0,
                                    omega_fxb=0,
-                                   r_f=
-                                   y * np.pi / 180,k3=z )
+                                   r_f=0 * np.pi / 180,k3=0.75 )
                 # 清空文件
                 open('output.txt', 'w').close()
 
@@ -61,8 +44,8 @@ def main():
 '''
                     missile1.torque()
                     # 方法一
-                    if missile1.tt % 1 <= 0.0015 and missile1.state2 == 1:
-                        missile1.get_r_fc_method1()
+                    #if missile1.tt % 1 <= 0.0015 and missile1.state2 == 1:
+                    missile1.get_r_fc_method1()
 
                     missile1.get_Te_method()
                     missile1.force()
@@ -70,20 +53,9 @@ def main():
                     missile1.runge_kutta_update()
                     missile1.display_info()
                     missile1.save_to_file()
-                with open('output.txt', 'r', encoding='utf-8') as infile, open('zhengdingk5_error_k3.txt', 'a',
-                                                                               encoding='utf-8') as outfile:
-                    # 读取所有行
-                    lines = infile.readlines()
-                    # 获取最后一行
-                    last_line = lines[-1]
-                    # 按空格分隔并提取第4和第5列（索引为3和4）
-                    columns = last_line.split()
-                    if len(columns) >= 5:  # 确保至少有5列
-                        data_to_copy = f"{columns[3]} {columns[4]} "
-                        # 写入目标文件
-                        outfile.write(data_to_copy + '\n')
-                        #outfile.write(str(x) + '\t')  # 在后面添加 i
-                        #outfile.write(str(y) + '\n')
+
+
+
 
 
 

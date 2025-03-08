@@ -123,21 +123,20 @@ class Missile:
 
         self.current_time = 0
 
-        self.state=0 #视线角达到一致开关
         self.state2 = 0 #最高点起控信号
         self.temp = 0
         self.r_fc=0 #期待翼筒滚转角
+        self.r_fc_no_gratitude=0
+        self.r_fc=0
+        self.r_fc_no_gratitude=0
+        self.q2=0
+        self.dq2dt=0
         self.tt = 0
-        self.direction=1 #旋转方向
-        self.parameter=0 #转速
+
 
         self.k4=k4
         self.k3=k3
-        self.parameter1 = 1#第二种控制的控制开关
-        self.parameter3 = 0  # 第一种方法旋转开关
-        self.last_parameter3=0
-        self.update_count =0#为了保证翼筒滚转角单向旋转
-        self.value_to_pass=0
+
     @staticmethod
     def sign(x):
         if x > 0:
@@ -208,7 +207,6 @@ class Missile:
         N_datcom = C_n * self.q * S # 法向力
 
 
-
         #这三个要从弹体转到地面
         Z=np.sin(self.phi)*np.sin(self.theta)*np.cos(self.psi)-np.cos(self.phi)*np.sin(self.psi)
         X=np.sin(self.phi)*np.sin(self.theta)*np.sin(self.psi)+np.cos(self.phi)*np.cos(self.psi)
@@ -230,8 +228,6 @@ class Missile:
         self.f_zg = self.L + (m + m_f) * g
 
     def get_Te_method(self): #这个函数先求r_fc再求Te
-
-
 
         '''
         A=np.sqrt((self.position_x-x_pre)*(self.position_x-x_pre)+(self.position_y-y_pre)*(self.position_y-y_pre))
@@ -306,18 +302,16 @@ class Missile:
         x_target_position = 4320
         y_target_position = 0
 
-
         r1=math.sqrt((x_target_position-self.position_x)*(x_target_position-self.position_x)+(y_target_position-self.position_y)*(y_target_position-self.position_y))
         q1=arctan((y_target_position-self.position_y)/(x_target_position-self.position_x))
         dq1dt=self.v_xk*np.cos(self.theta_a)*np.sin(q1-self.psi_v)/r1
-        r_fcz=5000*dq1dt
+        r_fcz=500*dq1dt
 
         r2 = math.sqrt( r1*r1+self.position_z*self.position_z)
         q2 = arctan(self.position_z / r1 )
-        dq2dt = self.v_xk * np.cos(q1-self.psi_v) * np.sin(q2-self.theta_a) / r2
-        r_fcy = 4.2 * dq2dt-0.005*g/self.v_xk/np.cos(q1-self.psi_v)
-
-
+        self.dq2dt = self.v_xk * np.cos(q1-self.psi_v) * np.sin(q2-self.theta_a) / r2
+        r_fcy = 4.2 * self.dq2dt+5*g/self.v_xk/np.cos(q1-self.psi_v)
+        self.r_fcy=r_fcy
 
         if r_fcy > 0 and r_fcz > 0:
             self.r_fc = arctan(self.k3*r_fcz/(1-self.k3)/r_fcy)
@@ -334,7 +328,24 @@ class Missile:
         elif r_fcy < 0 and r_fcz < 0:
             self.r_fc = arctan(self.k3*r_fcz/(1-self.k3)/r_fcy)- np.pi
 
-
+        #以下探究无重力补偿
+        r_fcy_no_gratitude = 4.2 * self.dq2dt
+        self.r_fcy_no_gratitude = r_fcy_no_gratitude
+        self.q2=q2
+        if r_fcy_no_gratitude > 0 and r_fcz > 0:
+            self.r_fc_no_gratitude = arctan(self.k3*r_fcz/(1-self.k3)/r_fcy_no_gratitude)
+        elif abs(r_fcy_no_gratitude) ==0 and r_fcz > 0:
+            self.r_fc_no_gratitude = np.pi/2
+        elif r_fcy_no_gratitude < 0 and  r_fcz > 0:
+            self.r_fc_no_gratitude = np.pi + arctan(self.k3*r_fcz/(1-self.k3)/r_fcy_no_gratitude)
+        elif r_fcy_no_gratitude < 0 and r_fcz ==0:
+            self.r_fc_no_gratitude = np.pi
+        elif r_fcy_no_gratitude > 0 and r_fcz <0:
+            self.r_fc_no_gratitude = arctan(self.k3*r_fcz/(1-self.k3)/r_fcy_no_gratitude)
+        elif r_fcy_no_gratitude == 0 and r_fcz < 0:
+            self.r_fc_no_gratitude = -np.pi / 2
+        elif r_fcy_no_gratitude < 0 and r_fcz < 0:
+            self.r_fc_no_gratitude = arctan(self.k3*r_fcz/(1-self.k3)/r_fcy_no_gratitude)- np.pi
 
     def torque(self):
         self.Ma=self.v_xk/(0.0038*self.position_z+340.29)#  0.3-0.9
@@ -478,6 +489,8 @@ class Missile:
          with open('output.txt', 'a', encoding='utf-8') as f:
              #f.write(str(self.normalize_angle_radians(self.r_fc)*180/np.pi)+'\t')  # 将数字转换为字符串
              f.write(str(self.r_fc*180/np.pi) + '\t')
+             f.write(str(self.r_fc_no_gratitude * 180 / np.pi) + '\t')
+             f.write(str(self.r_fc * 180 / np.pi) + '\t')
              f.write(str(self.phi*180/np.pi) + '\t')
              f.write(str(self.theta*180/np.pi) + '\t')  # 将数字转换为字符串
              #f.write(str(self.normalize_angle_radians(self.r_fc)*180/np.pi) + '\t')  # 将数字转换为字符串
