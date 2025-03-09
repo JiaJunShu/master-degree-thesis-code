@@ -67,7 +67,7 @@ model3.load_state_dict(torch.load('model_3round.pth'))
 model3.eval()
 
 class Missile:
-    def __init__(self, position_x=0, position_y=0, position_z=0, v_xk=0, theta_a=0, psi_v=0,phi = 0,theta = 0,psi=0,omega_yb = 0,omega_zb = 0,omega_xb = 0,omega_fxb = 0,r_f=0,k3=0.75,k4=15):
+    def __init__(self, position_x=0, position_y=0, position_z=0, v_xk=0, theta_a=0, psi_v=0,phi = 0,theta = 0,psi=0,omega_yb = 0,omega_zb = 0,omega_xb = 0,omega_fxb = 0,r_f=0,k3=0.75,k4=15,wind=None):
         #以下是位置的内容
         self.position_x = position_x  # x坐标
         self.position_y = position_y  # y坐标
@@ -133,6 +133,7 @@ class Missile:
         self.dq2dt=0
         self.tt = 0
 
+        self.wind=wind
 
         self.k4=k4
         self.k3=k3
@@ -223,10 +224,14 @@ class Missile:
         self.C =C*np.cos(self.phi_w)+L*np.sin(self.phi_w)
         self.L =C*np.sin(self.phi_w)-L*np.cos(self.phi_w)
         '''
+
         self.f_xg = self.D
         self.f_yg = self.C
         self.f_zg = self.L + (m + m_f) * g
 
+
+        if self.position_z<-1130:
+            self.f_yg = self.C+self.wind
     def get_Te_method(self): #这个函数先求r_fc再求Te
 
         '''
@@ -305,12 +310,12 @@ class Missile:
         r1=math.sqrt((x_target_position-self.position_x)*(x_target_position-self.position_x)+(y_target_position-self.position_y)*(y_target_position-self.position_y))
         q1=arctan((y_target_position-self.position_y)/(x_target_position-self.position_x))
         dq1dt=self.v_xk*np.cos(self.theta_a)*np.sin(q1-self.psi_v)/r1
-        r_fcz=500*dq1dt
+        r_fcz=5000*dq1dt
 
         r2 = math.sqrt( r1*r1+self.position_z*self.position_z)
         q2 = arctan(self.position_z / r1 )
         self.dq2dt = self.v_xk * np.cos(q1-self.psi_v) * np.sin(q2-self.theta_a) / r2
-        r_fcy = 4.2 * self.dq2dt+5*g/self.v_xk/np.cos(q1-self.psi_v)
+        r_fcy = 4.2 * self.dq2dt-0.005*g/self.v_xk/np.cos(q1-self.psi_v)
         self.r_fcy=r_fcy
 
         if r_fcy > 0 and r_fcz > 0:
@@ -489,21 +494,18 @@ class Missile:
          with open('output.txt', 'a', encoding='utf-8') as f:
              #f.write(str(self.normalize_angle_radians(self.r_fc)*180/np.pi)+'\t')  # 将数字转换为字符串
              f.write(str(self.r_fc*180/np.pi) + '\t')
-             f.write(str(self.r_fc_no_gratitude * 180 / np.pi) + '\t')
-             f.write(str(self.r_fc * 180 / np.pi) + '\t')
              f.write(str(self.phi*180/np.pi) + '\t')
              f.write(str(self.theta*180/np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.normalize_angle_radians(self.r_fc)*180/np.pi) + '\t')  # 将数字转换为字符串
              f.write(str(self.position_x)+'\t')  # 将数字转换为字符串
              f.write(str(self.position_y) + '\t')  # 将数字转换为字符串
              f.write(str(-self.position_z) + '\t')  # 将数字转换为字符串
-             f.write(str(self.current_time) + '\t')  # 将数字转换为字符串
-             f.write(str(self.psi * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.omega_fxb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.omega_xb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.omega_yb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.omega_zb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.psi_v * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.theta_a * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             f.write(str(self.v_xk ) + '\n')  # 将数字转换为字符串
+             f.write(str(self.current_time) + '\n')  # 将数字转换为字符串
+             #f.write(str(self.psi * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.omega_fxb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.omega_xb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.omega_yb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.omega_zb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.psi_v * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.theta_a * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             #f.write(str(self.v_xk ) + '\n')  # 将数字转换为字符串
 
