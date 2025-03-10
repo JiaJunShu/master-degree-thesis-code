@@ -8,9 +8,10 @@ import random
 
 def main():
         # 实例化Missle类，初始化参数 #速度别超过150 220
+        #这两个数字可以随便给，但是不能没有
         x_pre = 1000
         y_pre = 1000
-        # 生成两个随机序列
+        # 生成几个随机序列
         x_values = [random.uniform(-0.5, 0.5) for _ in range(20)]#发射偏角
         y_values = [random.uniform(-180, 180) for _ in range(20)]#翼筒滚转角
         z_values = [random.uniform(42, 48) for _ in range(20)]#射角
@@ -30,7 +31,7 @@ def main():
             temp = 0
             while missile1.position_z <= 0:  #
                 missile1.attack_speed()
-                '''          # 方法二
+                '''           #使用方法二请打开这里，使用方法一请关闭这里
                 if missile1.state2 == 1:
                     if missile1.tt % 1 <= 0.0015:
                         missile2 = copy.copy(missile1)
@@ -52,12 +53,12 @@ def main():
                 else:
                     # 可能记录日志或输出信息来检查为何`state`不为`1`
                     print("Missile2未能初始化，因为missile1.state2不是1")
-'''  
+'''  #使用方法二请打开这里，使用方法一请关闭这里
                 missile1.torque()
                 # 方法一
                 if missile1.tt % 1 <= 0.0015 and missile1.state2 == 1:
+                    #使用方法一请打开下一行，使用方法二请关闭下一行
                    missile1.get_r_fc_method1()
-
 
                 missile1.get_Te_method()
                 missile1.force()
@@ -66,7 +67,6 @@ def main():
                 missile1.display_info()
                 missile1.save_to_file()
             with open('output.txt', 'r', encoding='utf-8') as infile, open('mtkl_method1_wind_zong_v220_4320,0.txt','a', encoding='utf-8') as outfile:
-
                 # 读取所有行
                 lines = infile.readlines()
                 # 获取最后一行

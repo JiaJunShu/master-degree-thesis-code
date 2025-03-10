@@ -19,7 +19,7 @@ length = 0.12 #参考长度 气动弦长
 diameter = 0.12 #直径
 d=0.26#弹体质心和翼筒质心的距离
 S = diameter * diameter * np.pi / 4 #面积
-rho=1.293  #空气密度
+
 I_dx = 0.023898
 I_dy = 0.307789
 I_dz = 0.307789
@@ -28,11 +28,10 @@ I_fx = 96.22e-6
 I_fy = 61.243e-6
 I_fz = 61.243e-6
 
-
+#加载模型
 scaler_3round = joblib.load('scaler_3round.pkl')
 
 # 定义与训练时相同的模型
-
 
 # 定义全连接神经网络
 class model_3round(nn.Module):
@@ -102,7 +101,7 @@ class Missile:
         self.Ma = self.v_xk/(0.0038*self.position_z+340.29) #马赫
         self.Re = (0.000112*self.position_z+1.225)*self.v_xk *0.12*100000/ (0.0000316*self.position_z+1.78941) #雷诺  算了一下导弹雷诺数一般是1.9*10六次方300v 到1.2*10六次方200v
 
-        self.q=0.5*(0.000112*self.position_z+1.225)*self.v_xk*self.v_xk
+        self.q=0.5*(0.000112*self.position_z+1.225)*self.v_xk*self.v_xk#动压
         self.D = C_d * self.q * S
         self.C = C_y * self.q * S
         self.L = C_l * self.q * S
@@ -124,19 +123,19 @@ class Missile:
         self.current_time = 0
 
         self.state2 = 0 #最高点起控信号
-        self.temp = 0
-        self.r_fc=0 #期待翼筒滚转角
-        self.r_fc_no_gratitude=0#无重力期待翼筒滚转角
+        self.r_fc=0 #期望翼筒滚转角
+        self.r_fc_no_gratitude=0#无重力期待翼筒滚转角，用于对重力补偿做对比
 
         self.q2=0
         self.dq2dt=0
-        self.tt = 0
+        self.tt = 0#最高点启控后开始计时
 
-        self.wind=wind
+        self.wind=wind#风速
 
         self.k4=k4
         self.k3=k3
 
+    #符号函数
     @staticmethod
     def sign(x):
         if x > 0:
@@ -146,6 +145,7 @@ class Missile:
         else:
             return 0
 
+    #内环滑膜控制器
     def slide_mode_controller(self, desired_roll_angle, c1, c2):
         self.s1 = c1 * (self.r_f - desired_roll_angle) + c2 * self.omega_fxb
         # 计算扭矩 额定41 堵转265
@@ -163,12 +163,13 @@ class Missile:
         # 更新previous_error
         self.previous_error = error
 
+    #角度归一化到-180,180
     def normalize_angle_radians(self, angle):
         angle = angle % (2 * math.pi)
         if angle > math.pi:
             angle -= 2 * math.pi
         return angle
-
+    #求攻角和速度
     def attack_speed(self):
 
         self.v_xk=np.sqrt(self.v_xg*self.v_xg+self.v_yg*self.v_yg+self.v_zg*self.v_zg)
@@ -182,7 +183,7 @@ class Missile:
         '''
         #self.phi_w = np.arcsin((np.sin(self.theta_a) * (np.sin(self.phi) * np.sin(self.theta) * np.cos(self.psi - self.psi_v) - np.cos(self.phi) * np.sin(self.psi - self.psi_v)) + np.cos(self.theta_a) * np.sin(self.phi) * np.cos(self.theta)) / np.cos(self.beta))
         '''
-
+    #求力
     def force(self):
         #先求气动系数
         # 假设 self.Ma, self.Re, self.alpha, self.beta 这些属性已经被定义
@@ -229,52 +230,24 @@ class Missile:
 
         if self.position_z<-1130:
             self.f_xg = self.D+self.wind
-    def get_Te_method(self): #这个函数先求r_fc再求Te
-
-        '''
-        A=np.sqrt((self.position_x-x_pre)*(self.position_x-x_pre)+(self.position_y-y_pre)*(self.position_y-y_pre))
-        B=np.sqrt((x_target_position-x_pre)*(x_target_position-x_pre)+(y_target_position-y_pre)*(y_target_position-y_pre))
-        C=np.sqrt((x_target_position-self.position_x)*(x_target_position-self.position_x)+(y_target_position-self.position_y)*(y_target_position-self.position_y))
-
-        angel1 = arctan((x_pre-self.position_x)/(y_pre-self.position_y))-arctan((x_target_position-self.position_x)/(y_target_position-self.position_y))
-
-        detal_x=C*np.cos(angel1)-A
-        detal_y=C*np.sin(angel1)
-        
-
-        angel=arctan(-detal_y/detal_x)
-
-        print(f"angel: {angel * 180 / np.pi} ")
-
-        if  self.state2 == 1:
-            self.tt+=0.001
-            if angel >= 0:
-                #self.r_fc = 2 * (-arctan(angel) + np.pi / 2) - 1.1
-                self.r_fc =np.pi- angel
-            else:
-                #self.r_fc = 2 * (-arctan(angel) - np.pi / 2) + 1.1
-                self.r_fc = -np.pi  - angel
-
-        self.slide_mode_controller(self.r_fc, 0.061, 0.00005)
-        '''
+    def get_Te_method(self): #这个函数求Te
         if  self.state2 == 1:
             self.tt+=0.001
 
         self.slide_mode_controller(self.r_fc, 0.061, 0.00005)
 
-        # 到最高点之前一直转
+        # 到最高点之前翼筒滚转角一直转
         if self.v_zg < 0:
-             self.Te = I_fx * (50*2*np.pi - self.omega_fxb) #50转
+             self.Te = I_fx * (50*2*np.pi - self.omega_fxb) #50转/s
 
-        #到最高点以后翼筒滚转角和滚转角归一化一下
+        #到最高点以后翼筒滚转角和滚转角归一化一下。这很重要，不然结果非常不理想
         if abs(self.v_zg)<0.01:
              self.r_f=self.normalize_angle_radians(self.r_f)
              self.phi = 0#self.normalize_angle_radians(self.phi)
              self.state2 = 1#最高点启控制信号
 
 
-
-    def get_r_fc_method2(self, x_pre, y_pre):  # 这个函数先求r_fc再求Te   我想出来的求反三角函数的方法
+    def get_r_fc_method2(self, x_pre, y_pre):  # 方法二这个函数先求r_fc
 
         x_target_position =4320
         y_target_position = 0
@@ -282,7 +255,7 @@ class Missile:
         detal_x=x_target_position-x_pre
         detal_y=y_target_position-y_pre
 
-        if detal_x>0 and abs(detal_y)<=1: #这个系数 初速越大 也越大
+        if detal_x>0 and abs(detal_y)<=1:
             self.r_fc =0
         elif detal_x>0 and detal_y>0:
             self.r_fc = 1 / (1 + np.exp(detal_x/self.k4))*np.arctan(detal_y / detal_x)
@@ -299,8 +272,8 @@ class Missile:
         elif detal_x<0 and detal_y<0:
             self.r_fc = 1 / (1 + np.exp(detal_x/self.k4))*(np.arctan(detal_y / detal_x)-np.pi)
 
-    def get_r_fc_method1(self):  # 这个函数先求r_fc再求Te
-
+    def get_r_fc_method1(self):  # 方法一这个函数求r_fc
+        # 目标落点
         x_target_position = 4320
         y_target_position = 0
 
@@ -376,7 +349,7 @@ class Missile:
 
 
     def dynamics(self, t, y):
-         """定义导弹的动力学方程"""
+         """定义导弹的动力学方程，质心运动方程"""
          position_x, position_y, position_z, v_xg, v_yg, v_zg = y
 
          # 根据导弹状态计算微分方程，根据需要自行调整
@@ -384,14 +357,14 @@ class Missile:
          dydt =v_yg  # y方向速度
          dzdt = v_zg  # z方向速度
 
-         dv_xgdt =self.f_xg/(m+m_f)  # 速度x方向的变化率，具体取决于应用场景
-         dv_ygdt = self.f_yg / (m+m_f)   # 速度y方向变化率，具体取决于应用场景
-         dv_zgdt= self.f_zg / (m+m_f)  # 速度z方向变化率，具体取决于应用场景
+         dv_xgdt =self.f_xg/(m+m_f)  # 速度x方向的变化率
+         dv_ygdt = self.f_yg / (m+m_f)   # 速度y方向变化率
+         dv_zgdt= self.f_zg / (m+m_f)  # 速度z方向变化率
 
          return np.array([dxdt, dydt, dzdt, dv_xgdt, dv_ygdt, dv_zgdt])
 
     def attitude_dynamics(self, t, y):
-         """定义新的动力学方程"""
+         """定义新的动力学方程，旋转运动方程"""
          phi, theta, psi, omega_xb, omega_yb, omega_zb, omega_fxb, r_f = y
 
          # 这是翼筒的两个参数
@@ -413,7 +386,7 @@ class Missile:
          return np.array([dphidt, dthetadt, dpsidt, domega_xbdt, domega_ybdt, domega_zbdt, domega_fxbdt, dr_f])
 
     def runge_kutta_update(self, h= 0.001):
-         """使用四阶龙哥库塔方法更新导弹状态"""
+         """使用四阶龙哥库塔方法更新导弹状态，质心"""
          # 当前状态
          self.current_time += h
          t = 0  # 当前时间（可忽略，只用作占位）
@@ -438,7 +411,7 @@ class Missile:
          self.position_x, self.position_y, self.position_z, self.v_xg, self.v_yg, self.v_zg = y_next
 
     def attitude_runge_kutta_update(self, h= 0.001):
-         """使用四阶龙哥库塔方法更新导弹状态"""
+         """使用四阶龙哥库塔方法更新导弹状态，旋转"""
          # 当前状态
          t = 0  # 当前时间（可忽略，只用作占位）
          y = np.array([self.phi, self.theta, self.psi, self.omega_xb, self.omega_yb, self.omega_zb,self.omega_fxb,self.r_f])
@@ -480,7 +453,6 @@ class Missile:
          print(f"攻角 (alpha): {self.alpha*180/np.pi} ")
          print(f"侧滑角 (beta): {self.beta*180/np.pi} ")
 
-
     def save_to_file(self):
          # 将 self.theta 的值写入到 output.txt 文件中
          with open('output.txt', 'a', encoding='utf-8') as f:
@@ -492,12 +464,12 @@ class Missile:
              f.write(str(self.position_y) + '\t')  # 将数字转换为字符串
              f.write(str(-self.position_z) + '\t')  # 将数字转换为字符串
              f.write(str(self.current_time) + '\n')  # 将数字转换为字符串
-             #f.write(str(self.psi * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.omega_fxb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.omega_xb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.omega_yb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.omega_zb * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.psi_v * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.theta_a * 180 / np.pi) + '\t')  # 将数字转换为字符串
-             #f.write(str(self.v_xk ) + '\n')  # 将数字转换为字符串
+             f.write(str(self.psi * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.omega_fxb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.omega_xb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.omega_yb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.omega_zb * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.psi_v * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.theta_a * 180 / np.pi) + '\t')  # 将数字转换为字符串
+             f.write(str(self.v_xk ) + '\n')  # 将数字转换为字符串
 

@@ -7,7 +7,7 @@ import re
 file_path = r'C:\Users\Administrator\Documents\WeChat Files\wxid_r8bezitejwk621\FileStorage\File\2024-10\data'
 
 # 要选择的列的索引
-column_indices = [3, 4, 5, 22, 24, 38, 29, 23, 25, 28] #3ma 4re 5beta 22alpha 24cm  38cmq 29cln 30cll 23cn  25ca 28cy 89clnr 93cllp
+column_indices = [3, 4, 5, 22, 24, 38, 29, 23, 25, 28] #3ma 4re 5beta 22alpha 24cm  38cmq 29cln 23cn  25ca 28cy
 
 # 正则表达式匹配数字
 pattern = r'dataoutFinPhi(\d{1,3})\.csv'

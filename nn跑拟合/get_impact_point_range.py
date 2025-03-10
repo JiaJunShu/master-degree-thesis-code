@@ -8,9 +8,6 @@ x_target_position = 4320
 y_target_position = 0
 
 
-
-
-
 def main():
         # 实例化Missle类，初始化参数 #速度别超过150 220
         x_pre = 1000
@@ -76,7 +73,6 @@ def main():
                     # 写入目标文件
                     outfile.write(data_to_copy)
                     outfile.write(str(i) + '\n')  # 在前面添加 i
-
 
 
 if __name__ == "__main__":
