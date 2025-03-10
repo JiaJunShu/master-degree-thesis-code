@@ -11,12 +11,12 @@ def main():
         x_pre = 1000
         y_pre = 1000
         # 生成两个随机序列
-        x_values = [random.uniform(-0.5, 0.5) for _ in range(20)]
-        y_values = [random.uniform(-180, 180) for _ in range(20)]
-        z_values = [random.uniform(42, 48) for _ in range(20)]
-        wind_values=[random.uniform(-10, 10) for _ in range(20)]
+        x_values = [random.uniform(-0.5, 0.5) for _ in range(20)]#发射偏角
+        y_values = [random.uniform(-180, 180) for _ in range(20)]#翼筒滚转角
+        z_values = [random.uniform(42, 48) for _ in range(20)]#射角
+        wind_values=[random.uniform(-10, 10) for _ in range(20)]#风速
         # 清空文件
-        open('mtkl_method2_wind_v220_4320,0.txt', 'w').close()
+        open('mtkl_method1_wind_zong_v220_4320,0.txt', 'w').close()
         for w in wind_values:
             missile1 = Missile(v_xk=220, phi=0, theta=45 * np.pi / 180, psi=0 * np.pi / 180, position_x=0,
                                position_y=0,
@@ -30,7 +30,7 @@ def main():
             temp = 0
             while missile1.position_z <= 0:  #
                 missile1.attack_speed()
-                           # 方法二
+                '''          # 方法二
                 if missile1.state2 == 1:
                     if missile1.tt % 1 <= 0.0015:
                         missile2 = copy.copy(missile1)
@@ -52,11 +52,11 @@ def main():
                 else:
                     # 可能记录日志或输出信息来检查为何`state`不为`1`
                     print("Missile2未能初始化，因为missile1.state2不是1")
-
+'''  
                 missile1.torque()
                 # 方法一
-                #if missile1.tt % 1 <= 0.0015 and missile1.state2 == 1:
-                #   missile1.get_r_fc_method1()
+                if missile1.tt % 1 <= 0.0015 and missile1.state2 == 1:
+                   missile1.get_r_fc_method1()
 
 
                 missile1.get_Te_method()
@@ -65,8 +65,7 @@ def main():
                 missile1.runge_kutta_update()
                 missile1.display_info()
                 missile1.save_to_file()
-            with open('output.txt', 'r', encoding='utf-8') as infile, open('mtkl_method2_wind_v220_4320,0.txt',
-                                                                           'a', encoding='utf-8') as outfile:
+            with open('output.txt', 'r', encoding='utf-8') as infile, open('mtkl_method1_wind_zong_v220_4320,0.txt','a', encoding='utf-8') as outfile:
 
                 # 读取所有行
                 lines = infile.readlines()

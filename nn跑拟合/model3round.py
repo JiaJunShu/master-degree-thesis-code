@@ -69,7 +69,7 @@ criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.005)
 
 # 训练模型
-num_epochs = 2
+num_epochs = 20
 batch_size = 32
 
 for epoch in range(num_epochs):

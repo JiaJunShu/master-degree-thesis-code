@@ -126,9 +126,8 @@ class Missile:
         self.state2 = 0 #最高点起控信号
         self.temp = 0
         self.r_fc=0 #期待翼筒滚转角
-        self.r_fc_no_gratitude=0
-        self.r_fc=0
-        self.r_fc_no_gratitude=0
+        self.r_fc_no_gratitude=0#无重力期待翼筒滚转角
+
         self.q2=0
         self.dq2dt=0
         self.tt = 0
@@ -171,8 +170,6 @@ class Missile:
         return angle
 
     def attack_speed(self):
-        #self.alpha = self.theta-self.theta_a  # 高低攻角
-        #self.beta = self.psi_v-self.psi  # 侧滑攻角
 
         self.v_xk=np.sqrt(self.v_xg*self.v_xg+self.v_yg*self.v_yg+self.v_zg*self.v_zg)
 
@@ -231,7 +228,7 @@ class Missile:
 
 
         if self.position_z<-1130:
-            self.f_yg = self.C+self.wind
+            self.f_xg = self.D+self.wind
     def get_Te_method(self): #这个函数先求r_fc再求Te
 
         '''
@@ -484,11 +481,6 @@ class Missile:
          print(f"侧滑角 (beta): {self.beta*180/np.pi} ")
 
 
-
-         #print(f"俯仰角速度（omega_yb）: {self.omega_yb}rad")
-
-         #print(f"偏航角速度 (psi): {self.omega_zb} rad")
-         #print(f"偏航角速度 (psi): {self.omega_xb} rad")
     def save_to_file(self):
          # 将 self.theta 的值写入到 output.txt 文件中
          with open('output.txt', 'a', encoding='utf-8') as f:
