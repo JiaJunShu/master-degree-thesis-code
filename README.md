@@ -2,7 +2,7 @@
 
 一、py代码
 
-平台：pycharm，需要安装pytorch框架
+平台：pycharm，需要安装pytorch框架，使用本机python3.10（base）环境
 
 使用流程，必须先运行1和2得到神经网络代理模型：
 1.zhenghe.py
