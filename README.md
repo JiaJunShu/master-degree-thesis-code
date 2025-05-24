@@ -17,9 +17,9 @@ ps：原始表格的翼筒滚转角度是0-360，我转化为了-180-180。
 输出：训练完成后，保存为'model_3round.pth'
 ps：网络结构5输入6输出，学习率lr，训练轮次num_epochs,批次大小batch_size可修改，激活函数sigmoid。
 
-3.model3predict.py(可选)
+3.model3predict.py(可选)[py仿真代码](py%E4%BB%BF%E7%9C%9F%E4%BB%A3%E7%A0%81)
 作用：测试第二步的模型的准确性
-输入：改变new_data作为自定义的输入
+输入：改变new_data作为自定义的输[py仿真代码](py%E4%BB%BF%E7%9C%9F%E4%BB%A3%E7%A0%81)入
 输出：prediction是该模型预测的输出
 ps：将prediction和combined_output.csv里面的数据进行对比可以查看准确与否。
 
@@ -141,3 +141,9 @@ ps：根据数据里面的所有落点自行修改范围和目标点
 输入：x补偿前的角度，y补偿后的角度
 输出：y/x随着x的变化情况
 ps：用来反映补偿项的作用
+
+16.dandao_2d.m
+作用：画出弹道的平面图
+输入：一次弹道仿真output.txt文件
+输出：平面中的弹道轨迹
+ps：根据需要修改读取第4列5列（xoy平面），或者第4列6列（xoz平面）
